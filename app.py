@@ -11,7 +11,7 @@ mins = 10  # 單位：分鐘
 model_size = "large"  # 您可以選擇不同大小的模型，例如 tiny, base, small, medium, large, large-v2, large-v3
 device = "cpu"  # "cuda" 或 "cpu"
 compute_type = "float32"  # "float16" 或 "float32"
-mode = "subtitle"  # 'normal', 'timeline', 'subtitle'
+mode = "timeline"  # 'normal', 'timeline', 'subtitle'
 
 
 # 設定日誌記錄
