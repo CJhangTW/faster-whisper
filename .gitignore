@@ -1,9 +1,3 @@
-# 專案需要
-audio_files/*
-output/*
-chunks/*
-
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -6,16 +6,19 @@ import shutil
 from datetime import datetime
 
 # 定義音訊檔案和目錄
-audio_file = '錄製.m4a'
+audio_file = 'SHMeet.m4a'
 mins = 10  # 單位：分鐘
-model_size = "large"  # 您可以選擇不同大小的模型，例如 tiny, base, small, medium, large, large-v2, large-v3
+model_size = "tiny"  # 您可以選擇不同大小的模型，例如 tiny, base, small, medium, large, large-v2, large-v3
 device = "cpu"  # "cuda" 或 "cpu"
 compute_type = "float32"  # "float16" 或 "float32"
 mode = "timeline"  # 'normal', 'timeline', 'subtitle'
 
 
-# 設定日誌記錄
+# 設定全域日誌記錄
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# 針對 faster_whisper 設定更詳細的偵錯日誌
+logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
 
 # 檢查並創建目錄的函數
 def ensure_directory_exists(directory_name):
@@ -41,6 +44,23 @@ def clean_up_chunks(directory):
         logging.info(f"已刪除目錄：{directory}")
     except Exception as e:
         logging.error(f"刪除目錄 {directory} 時出錯：{e}")
+
+# 生成透過模式轉換文本的函數
+def generate_transcription(segments, mode):
+    """
+
+    """
+
+    if mode == "normal":
+        return ", ".join(segment.text for segment in segments)
+    elif mode == "timeline":
+        return "".join(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}\n" for segment in segments)
+    elif mode == "subtitle":
+        return "".join(
+            f"{i}\n{int(start_hours):02}:{int(start_minutes):02}:{start_seconds:06.3f} --> "
+            f"{int(end_hours):02}:{int(end_minutes):02}:{end_seconds:06.3f}\n{segment.text}\n\n"
+            for i, segment in enumerate(segments, 1)
+        )
 
 
 # 創建目錄
@@ -81,20 +101,9 @@ with open(output_path, 'w', encoding='utf-8') as file:
         if chunk_file.endswith(".wav"):
             chunk_path = os.path.join(chunk_directory, chunk_file)
             logging.info(f"正在處理 {chunk_file}...")
-            segments, info = model.transcribe(chunk_path, language="zh")
-            transcription = ""
+            segments, _ = model.transcribe(chunk_path, language="zh")
+            transcription = generate_transcription(segments, mode)
 
-            if mode == "normal":
-                transcription = ", ".join([segment.text for segment in segments])
-            elif mode == "timeline":
-                transcription = "".join(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}\n" for segment in segments)
-            elif mode == "subtitle":
-                for i, segment in enumerate(segments, 1):
-                    start_hours, start_remainder = divmod(segment.start, 3600)
-                    start_minutes, start_seconds = divmod(start_remainder, 60)
-                    end_hours, end_remainder = divmod(segment.end, 3600)
-                    end_minutes, end_seconds = divmod(end_remainder, 60)
-                    transcription += f"{i}\n{int(start_hours):02}:{int(start_minutes):02}:{start_seconds:06.3f} --> {int(end_hours):02}:{int(end_minutes):02}:{end_seconds:06.3f}\n{segment.text}\n\n"
 
             file.write(transcription)
             logging.info(transcription)

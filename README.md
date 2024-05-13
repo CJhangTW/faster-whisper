@@ -50,15 +50,9 @@ mode = "subtitle"  # 'normal', 'timeline', 'subtitle'
 
 後
 
-終端機 執行 `py .\App.py`
+終端機 執行 `py .\app.py`
 
 ---
 
 ## 未來版本
-
-### 更新內文
-
-新增可辨識時間的內容段落
-
-
 
